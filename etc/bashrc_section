@@ -1,0 +1,5 @@
+
+if [ -r "${HOME}/.bashrc_jumphost" ]
+then
+  source $HOME/.bashrc_jumphost
+fi

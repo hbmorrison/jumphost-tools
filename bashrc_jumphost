@@ -1,0 +1,59 @@
+# Ensure $HOME/.local/bin appears at the start of the PATH environment variable.
+
+REMOVED=$(/bin/echo ":${PATH}" | /bin/sed "s#:${HOME}/.local/bin##")
+PATH="${HOME}/.local/bin:${REMOVED/#:}"
+
+# SSH jumphost management.
+
+function jump {
+  local jumphost_ssh="/usr/bin/ssh -F ${HOME}/.ssh/config_jumphost"
+  local jumphost
+  if [ "${1}" == "status" ]
+  then
+    for jumphost in apps-jump-kb apps-jump-at
+    do
+      if $jumphost_ssh $jumphost-socket -O check &>/dev/null
+      then
+        echo "${jumphost} is connected"
+      else
+        echo "${jumphost} is not connected"
+      fi
+    done
+    lsof -i :11080 | grep LISTEN
+    return
+  fi
+  case "${2}" in
+    at) jumphost=apps-jump-at; other=apps-jump-kb;;
+    kb) jumphost=apps-jump-kb; other=apps-jump-at;;
+  esac
+  if [ ! -z ${jumphost:+z} ]
+  then
+    case "${1}" in
+      start)
+        if $jumphost_ssh -O check $jumphost-socket &>/dev/null
+        then
+          echo "Error: ${jumphost} already connected"
+        else
+          if $jumphost_ssh -O check $other-socket &>/dev/null
+          then
+            echo "Error: ${other} already connected"
+          else
+            declare -F totp &>/dev/null && totp $jumphost
+            $jumphost_ssh -f $jumphost-connect exit
+          fi
+        fi
+        return
+        ;;
+      stop)
+        if $jumphost_ssh -O check $jumphost-socket &>/dev/null
+        then
+          $jumphost_ssh -O exit $jumphost-socket
+        else
+          echo "Error: ${jumphost} not connected"
+        fi
+        return
+        ;;
+    esac
+  fi
+  echo "Usage: jump status | [start | stop] [kb | at]"
+}
