@@ -71,8 +71,6 @@ listening ports:
 $ jump status
 apps-jump-kb is connected
 apps-jump-at is not connected
-ssh     13486 uun    4u  IPv4  36379      0t0  TCP *:3128 (LISTEN)
-ssh     13486 uun    5u  IPv6  36380      0t0  TCP *:3128 (LISTEN)
 ssh     13486 uun    6u  IPv4  36383      0t0  TCP *:11080 (LISTEN)
 ssh     13486 uun    7u  IPv6  36384      0t0  TCP *:11080 (LISTEN)
 ```
